@@ -56,7 +56,7 @@ Contributions are welcome! If you'd like to contribute:
 ---
 
 ## **License**
-This plugin is licensed under MIT. Feel free to use, modify, and distribute the plugin as per the license terms.
+This plugin is licensed under the MIT license. Feel free to use, modify, and distribute the plugin as per the license terms.
 
 ---
 
