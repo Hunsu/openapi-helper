@@ -28,16 +28,16 @@ class SpringCloudPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
         val fileUrls = FileBasedIndex.getInstance()
                 .getValues(KEY, openApiOperation.operationId, GlobalSearchScope.projectScope(project))
 
-        LOG.info("Found fileUrls: ${fileUrls.joinToString(",")}")
+        LOG.debug("Found fileUrls: ${fileUrls.joinToString(",")}")
         val projectBasePath = project.basePath ?: ""
         val files = fileUrls.asSequence()
                 .map { relativePath -> "file://$projectBasePath$relativePath" }
                 .mapNotNull { fileUrl -> VirtualFileManager.getInstance().findFileByUrl(fileUrl) }
                 .mapNotNull { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) }
         val classes: List<PsiClass> = getClasses(files)
-        LOG.info("Found classes: ${classes.joinToString(",") { it.qualifiedName ?: "" }}")
+        LOG.debug("Found classes: ${classes.joinToString(",") { it.qualifiedName ?: "" }}")
         val psiMethod = resolveMethod(openApiOperation, classes) ?: return emptyList()
-        LOG.info("Found method: ${psiMethod.name}")
+        LOG.debug("Found method: ${psiMethod.name}")
         return listOf(psiMethod)
     }
 
@@ -45,10 +45,10 @@ class SpringCloudPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
         val clazz = classes.firstOrNull { klass ->
             val clientClass = JavaPsiFacade.getInstance(klass.project)
                     .findClass("${klass.qualifiedName}Client", klass.project.projectScope())
-            LOG.info("Found clientClass for ${klass.qualifiedName}: ${clientClass?.qualifiedName}")
+            LOG.debug("Found clientClass for ${klass.qualifiedName}: ${clientClass?.qualifiedName}")
             clientClass?.hasAnnotation("org.springframework.cloud.openfeign.FeignClient") == true
         }
-        LOG.info("Found : ${clazz?.qualifiedName}")
+        LOG.debug("Found : ${clazz?.qualifiedName}")
         return clazz?.let { JavaKotlinOpenApiMethodExtractor.resolveMethod(it, openApiOperation) }
     }
 
@@ -70,12 +70,12 @@ class SpringCloudPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
                         }
                     }
 
-            LOG.info("Found psiFile: $psiFile")
+            LOG.debug("Found psiFile: $psiFile")
             if (psiFile != null) {
                 val psiShortNamesCache = PsiShortNamesCache.getInstance(psiFile.project)
                 val name = psiFile.name.removeSuffix(".kt").removeSuffix(".java")
                 val classes = psiShortNamesCache.getClassesByName(name, GlobalSearchScope.projectScope(psiFile.project)).toList()
-                LOG.info("Found classes: ${classes.joinToString(",") { it.qualifiedName ?: "" }}")
+                LOG.debug("Found classes: ${classes.joinToString(",") { it.qualifiedName ?: "" }}")
                 classes
             } else {
                 emptyList()

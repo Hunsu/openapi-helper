@@ -29,7 +29,7 @@ class OpenApiOperationIdUsageSearcher : PsiReferenceContributor() {
 
                 val operationIdValue = (yamlKeyValue.value as? YAMLScalar)?.textValue ?: return PsiReference.EMPTY_ARRAY
 
-                LOG.info("Will search for usages of operationId: $operationIdValue")
+                LOG.debug("Will search for usages of operationId: $operationIdValue")
 
                 val rangeInElement = yamlKeyValue.value?.textRange?.shiftLeft(yamlKeyValue.textRange.startOffset)
                         ?: TextRange(0, keyText.length)

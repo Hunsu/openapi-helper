@@ -24,7 +24,7 @@ class TypeScriptPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
         val fileUrls = FileBasedIndex.getInstance()
                 .getValues(KEY, openApiOperation.operationId, GlobalSearchScope.projectScope(project))
 
-        LOG.info("Found fileUrls: ${fileUrls.joinToString(",")}")
+        LOG.debug("Found fileUrls: ${fileUrls.joinToString(",")}")
         val projectBasePath = project.basePath ?: ""
         return fileUrls.asSequence()
                 .map { relativePath -> "file://$projectBasePath$relativePath" }
@@ -43,13 +43,13 @@ class TypeScriptPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
     ): JSFunction? {
         val pathRegex = Regex("""path\s*:\s*["'`](.*?)["'`]""")
         val methodRegex = Regex("""method\s*:\s*["'`](.*?)["'`]""")
-        LOG.info("Lets check ${classes.map { it.name }} for $operation")
+        LOG.debug("Lets check ${classes.map { it.name }} for $operation")
         for (jsClass in classes) {
             val functions = jsClass.functions
             val rawFunction = functions.find { it.name == "${operation.operationId}Raw" }
 
             if (rawFunction != null) {
-                LOG.info("Found \"${operation.operationId}Raw\" function for ${jsClass.name}")
+                LOG.debug("Found \"${operation.operationId}Raw\" function for ${jsClass.name}")
                 val functionBodyText = rawFunction.text
                 val pathMatch = pathRegex.find(functionBodyText)?.groups?.get(1)?.value
                 val methodMatch = methodRegex.find(functionBodyText)?.groups?.get(1)?.value
@@ -57,16 +57,16 @@ class TypeScriptPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
                         methodMatch.equals(operation.method, ignoreCase = true)) {
                     val nonRawFunction = functions.find { it.name == operation.operationId }
                     if (nonRawFunction != null) {
-                        LOG.info("${operation.operationId}Raw function has been replaced by ${nonRawFunction.name}")
+                        LOG.debug("${operation.operationId}Raw function has been replaced by ${nonRawFunction.name}")
                         return nonRawFunction
                     }
 
                     return rawFunction
                 } else {
-                    LOG.info("${rawFunction.name} doesn't match the operationId and path/method")
+                    LOG.debug("${rawFunction.name} doesn't match the operationId and path/method")
                 }
             } else {
-                LOG.info("Didn't find \"${operation.operationId}Raw\" function for ${jsClass.name}")
+                LOG.debug("Didn't find \"${operation.operationId}Raw\" function for ${jsClass.name}")
             }
         }
         return null

@@ -10,7 +10,7 @@ class JavaKotlinOpenApiMethodExtractor {
         private val LOG = Logger.getInstance(JavaKotlinOpenApiMethodExtractor::class.java)
 
         fun resolveMethod(psiClass: PsiClass, operation: OpenApiOperation): PsiMethod? {
-            LOG.info("Searching for implementation of $operation in ${psiClass.qualifiedName}")
+            LOG.debug("Searching for implementation of $operation in ${psiClass.qualifiedName}")
             val method = psiClass.methods
                     .find { method ->
                         val operationAnnotation = method.getAnnotation("io.swagger.v3.oas.annotations.Operation")
@@ -22,19 +22,19 @@ class JavaKotlinOpenApiMethodExtractor {
                                 ?: method.getAnnotation("org.springframework.web.bind.annotation.PatchMapping")
 
                         if (requestMappingAnnotation == null) {
-                            LOG.info("Method ${method.name} doesn't have a RequestMapping annotation")
+                            LOG.debug("Method ${method.name} doesn't have a RequestMapping annotation")
                             return@find false
                         }
 
                         val operationId = operationAnnotation?.findAttributeValue("operationId")?.text?.trim('"')
                         if (operationAnnotation != null && operationId != operation.operationId) {
-                            LOG.info("Method ${method.name} has a different operationId than the one in the OpenAPI file")
+                            LOG.debug("Method ${method.name} has a different operationId than the one in the OpenAPI file")
                             return@find false
                         }
 
                         val summary = operationAnnotation?.findAttributeValue("summary")?.text?.trim('"')
                         if (operationAnnotation != null && operation.summary != null && summary != operation.summary) {
-                            LOG.info("Method ${method.name} has a different summary than the one in the OpenAPI file")
+                            LOG.debug("Method ${method.name} has a different summary than the one in the OpenAPI file")
                             return@find false
                         }
 
@@ -43,7 +43,7 @@ class JavaKotlinOpenApiMethodExtractor {
                                 ?.mapNotNull { (it as? PsiLiteralExpression)?.value as? String }
                                 ?: emptyList()
                         if (operationAnnotation != null && !tags.containsAll(operation.tags)) {
-                            LOG.info("Method ${method.name} doesn't have all the tags of the one in the OpenAPI file")
+                            LOG.debug("Method ${method.name} doesn't have all the tags of the one in the OpenAPI file")
                             return@find false
                         }
 
@@ -63,7 +63,7 @@ class JavaKotlinOpenApiMethodExtractor {
                             else -> null
                         }
 
-                        LOG.info("Found method: $method, path: $path")
+                        LOG.debug("Found method: $method, path: $path")
                         path != null && method != null && method.equals(operation.method, ignoreCase = true) &&
                                 (path == operation.path || !operation.path.startsWith("/"))
                     } ?: return null

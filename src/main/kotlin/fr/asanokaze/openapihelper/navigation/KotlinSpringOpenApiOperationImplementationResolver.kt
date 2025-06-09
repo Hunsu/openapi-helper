@@ -97,7 +97,7 @@ class KotlinSpringOpenApiOperationImplementationResolver : OpenApiImplementation
         val scope = (module?.moduleWithDependentsScope
                 ?: GlobalSearchScope.projectScope(psiClass.project))
 
-        LOG.info("Searching for implementation of $operation in ${psiClass.qualifiedName} using scope $scope")
+        LOG.debug("Searching for implementation of $operation in ${psiClass.qualifiedName} using scope $scope")
         method = JavaKotlinOpenApiMethodExtractor.resolveMethod(psiClass, operation) ?: return null
         if (hasGetDelegateMethod(psiClass)) {
             val delegateClass = JavaPsiFacade.getInstance(psiClass.project)
@@ -107,10 +107,10 @@ class KotlinSpringOpenApiOperationImplementationResolver : OpenApiImplementation
                 method = delegateClass.findMethodBySignature(method, false) ?: method
             }
         }
-        LOG.info("Found implementation of $operation: $method")
-        LOG.info("Searching for overriding methods of $method using scope $scope")
+        LOG.debug("Found implementation of $operation: $method")
+        LOG.debug("Searching for overriding methods of $method using scope $scope")
         val overridingMethods = OverridingMethodsSearch.search(method, scope, false).findAll()
-        LOG.info("Found overriding methods: ${overridingMethods.joinToString(", ")}")
+        LOG.debug("Found overriding methods: ${overridingMethods.joinToString(", ")}")
         if (overridingMethods.isNotEmpty()) {
             return overridingMethods.first()
         }
