@@ -46,19 +46,17 @@ class KotlinSpringOpenApiOperationImplementationResolver : OpenApiImplementation
         val fileUrls = FileBasedIndex.getInstance()
                 .getValues(KEY, operationId, GlobalSearchScope.projectScope(project))
 
-        fileUrls.asSequence()
+        val projectBasePath = project.basePath ?: ""
+        return fileUrls.asSequence()
+                .map { relativePath -> "file://$projectBasePath$relativePath" }
                 .mapNotNull { fileUrl -> VirtualFileManager.getInstance().findFileByUrl(fileUrl) }
                 .mapNotNull { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) }
-                .forEach { psiFile ->
-                    val result = when (psiFile) {
+                .mapNotNull { psiFile ->
+                    when (psiFile) {
                         is KtFile -> processKotlinFile(psiFile, operation)
                         else -> null
                     }
-                    if (result != null) {
-                        return listOf(result)
-                    }
-                }
-        return emptyList()
+                }.toList()
     }
 
     /**

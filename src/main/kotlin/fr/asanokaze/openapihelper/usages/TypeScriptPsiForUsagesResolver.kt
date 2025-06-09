@@ -25,7 +25,9 @@ class TypeScriptPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
                 .getValues(KEY, openApiOperation.operationId, GlobalSearchScope.projectScope(project))
 
         LOG.info("Found fileUrls: ${fileUrls.joinToString(",")}")
+        val projectBasePath = project.basePath ?: ""
         return fileUrls.asSequence()
+                .map { relativePath -> "file://$projectBasePath$relativePath" }
                 .mapNotNull { fileUrl -> VirtualFileManager.getInstance().findFileByUrl(fileUrl) }
                 .filter { it.extension == "ts" }
                 .mapNotNull { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) }

@@ -28,7 +28,9 @@ class SpringCloudPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
                 .getValues(KEY, openApiOperation.operationId, GlobalSearchScope.projectScope(project))
 
         LOG.info("Found fileUrls: ${fileUrls.joinToString(",")}")
-        val files = fileUrls.asSequence() // Use sequence for lazy evaluation
+        val projectBasePath = project.basePath ?: ""
+        val files = fileUrls.asSequence()
+                .map { relativePath -> "file://$projectBasePath$relativePath" }
                 .mapNotNull { fileUrl -> VirtualFileManager.getInstance().findFileByUrl(fileUrl) }
                 .mapNotNull { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) }
         val classes: List<PsiClass> = getClasses(files)
