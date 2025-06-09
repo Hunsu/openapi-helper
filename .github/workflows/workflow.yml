@@ -1,0 +1,91 @@
+name: Build, Test, and Release IntelliJ Plugin
+
+on:
+  push:
+    branches:
+      - master
+      - '**' # Trigger on all branches
+    tags:
+      - '*'  # Trigger on tags
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    if: "!startsWith(github.ref, 'refs/tags/')"  # Run this job only if it's NOT a tag push
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout Code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java (use Java 21 as per requirements)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # Step 3: Cache Gradle dependencies
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle
+
+      # Step 4: Build the plugin with tests
+      - name: Build and Run Tests
+        run: |
+          ./gradlew clean build --info
+
+  build-and-release:
+    name: Build and Release
+    if: startsWith(github.ref, 'refs/tags/')  # Run ONLY if it's a tag push
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java (use Java 21 as per requirements)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # Step 3: Cache Gradle Dependencies
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle
+
+      # Step 4: Build the plugin
+      - name: Build Plugin
+        run: |
+          ./gradlew buildPlugin
+
+      # Step 5: Prepare the release artifact
+      - name: Gather Release Artifact
+        run: |
+          mkdir -p release
+          cp build/distributions/*.zip release/
+        id: gather_artifact
+
+      # Step 6: Upload the artifact to GitHub Releases
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: release/*.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }} # The tag that triggered the workflow
+          name: Release ${{ github.ref_name }}
+          commit: ${{ github.sha }}
+          draft: false
+          prerelease: false
