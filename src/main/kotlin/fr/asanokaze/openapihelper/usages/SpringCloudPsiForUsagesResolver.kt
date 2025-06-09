@@ -10,6 +10,7 @@ import com.intellij.util.indexing.FileBasedIndex
 import fr.asanokaze.openapihelper.indexing.KEY
 import fr.asanokaze.openapihelper.model.OpenApiOperation
 import fr.asanokaze.openapihelper.utilities.JavaKotlinOpenApiMethodExtractor
+import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtFile
 
 /**
@@ -35,17 +36,17 @@ class SpringCloudPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
                 .mapNotNull { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) }
         val classes: List<PsiClass> = getClasses(files)
         LOG.info("Found classes: ${classes.joinToString(",") { it.qualifiedName ?: "" }}")
-        val psiMethod = resolveMethod(openApiOperation, classes)
-        if (psiMethod != null) {
-            listOf(psiMethod)
-        }
-        return emptyList()
+        val psiMethod = resolveMethod(openApiOperation, classes) ?: return emptyList()
+        LOG.info("Found method: ${psiMethod.name}")
+        return listOf(psiMethod)
     }
 
     private fun resolveMethod(openApiOperation: OpenApiOperation, classes: List<PsiClass>): PsiMethod? {
         val clazz = classes.firstOrNull { klass ->
-            !klass.hasAnnotation("org.springframework.web.bind.annotation.RestController")
-            !klass.methods.any { it.name == "getDelegate" }
+            val clientClass = JavaPsiFacade.getInstance(klass.project)
+                    .findClass("${klass.qualifiedName}Client", klass.project.projectScope())
+            LOG.info("Found clientClass for ${klass.qualifiedName}: ${clientClass?.qualifiedName}")
+            clientClass?.hasAnnotation("org.springframework.cloud.openfeign.FeignClient") == true
         }
         LOG.info("Found : ${clazz?.qualifiedName}")
         return clazz?.let { JavaKotlinOpenApiMethodExtractor.resolveMethod(it, openApiOperation) }

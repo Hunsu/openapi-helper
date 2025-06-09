@@ -1,52 +1,72 @@
 package fr.asanokaze.openapihelper.utilities
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.*
 import fr.asanokaze.openapihelper.model.OpenApiOperation
 
 class JavaKotlinOpenApiMethodExtractor {
 
     companion object {
+        private val LOG = Logger.getInstance(JavaKotlinOpenApiMethodExtractor::class.java)
 
         fun resolveMethod(psiClass: PsiClass, operation: OpenApiOperation): PsiMethod? {
-            val method = psiClass.methods.find { method ->
-                val operationAnnotation = method.getAnnotation("io.swagger.v3.oas.annotations.Operation")
-                val requestMappingAnnotation = method.getAnnotation("org.springframework.web.bind.annotation.RequestMapping")
-                        ?: method.getAnnotation("org.springframework.web.bind.annotation.PutMapping")
-                        ?: method.getAnnotation("org.springframework.web.bind.annotation.PostMapping")
-                        ?: method.getAnnotation("org.springframework.web.bind.annotation.GetMapping")
-                        ?: method.getAnnotation("org.springframework.web.bind.annotation.DeleteMapping")
-                        ?: method.getAnnotation("org.springframework.web.bind.annotation.PatchMapping")
+            LOG.info("Searching for implementation of $operation in ${psiClass.qualifiedName}")
+            val method = psiClass.methods
+                    .find { method ->
+                        val operationAnnotation = method.getAnnotation("io.swagger.v3.oas.annotations.Operation")
+                        val requestMappingAnnotation = method.getAnnotation("org.springframework.web.bind.annotation.RequestMapping")
+                                ?: method.getAnnotation("org.springframework.web.bind.annotation.PutMapping")
+                                ?: method.getAnnotation("org.springframework.web.bind.annotation.PostMapping")
+                                ?: method.getAnnotation("org.springframework.web.bind.annotation.GetMapping")
+                                ?: method.getAnnotation("org.springframework.web.bind.annotation.DeleteMapping")
+                                ?: method.getAnnotation("org.springframework.web.bind.annotation.PatchMapping")
 
-                if (operationAnnotation == null || requestMappingAnnotation == null) return@find false
+                        if (requestMappingAnnotation == null) {
+                            LOG.info("Method ${method.name} doesn't have a RequestMapping annotation")
+                            return@find false
+                        }
 
-                val operationId = operationAnnotation.findAttributeValue("operationId")?.text?.trim('"')
-                if (operationId != operation.operationId) return@find false
+                        val operationId = operationAnnotation?.findAttributeValue("operationId")?.text?.trim('"')
+                        if (operationAnnotation != null && operationId != operation.operationId) {
+                            LOG.info("Method ${method.name} has a different operationId than the one in the OpenAPI file")
+                            return@find false
+                        }
 
-                val summary = operationAnnotation.findAttributeValue("summary")?.text?.trim('"')
-                if (operation.summary != null && summary != operation.summary) return@find false
+                        val summary = operationAnnotation?.findAttributeValue("summary")?.text?.trim('"')
+                        if (operationAnnotation != null && operation.summary != null && summary != operation.summary) {
+                            LOG.info("Method ${method.name} has a different summary than the one in the OpenAPI file")
+                            return@find false
+                        }
 
-                val tags = (operationAnnotation.findAttributeValue("tags") as? PsiArrayInitializerMemberValue)
-                        ?.initializers
-                        ?.mapNotNull { (it as? PsiLiteralExpression)?.value as? String }
-                        ?: emptyList()
-                if (!tags.containsAll(operation.tags)) return@find false
+                        val tags = (operationAnnotation?.findAttributeValue("tags") as? PsiArrayInitializerMemberValue)
+                                ?.initializers
+                                ?.mapNotNull { (it as? PsiLiteralExpression)?.value as? String }
+                                ?: emptyList()
+                        if (operationAnnotation != null && !tags.containsAll(operation.tags)) {
+                            LOG.info("Method ${method.name} doesn't have all the tags of the one in the OpenAPI file")
+                            return@find false
+                        }
 
-                val httpMethodAttribute = requestMappingAnnotation.findAttributeValue("method")
-                val method = when (httpMethodAttribute) {
-                    is PsiReferenceExpression -> httpMethodAttribute.referenceName?.replace("RequestMethod.", "")
-                    is PsiArrayInitializerMemberValue -> httpMethodAttribute.initializers.firstOrNull()?.text?.replace("org.springframework.web.bind.annotation.RequestMethod.", "")
-                    else -> null
-                }
-                val httpPathAttribute = requestMappingAnnotation.findAttributeValue("value")
-                val path = when (httpPathAttribute) {
-                    is PsiReferenceExpression -> httpPathAttribute.referenceName
-                    is PsiArrayInitializerMemberValue -> httpPathAttribute.initializers.firstOrNull()?.text?.unquote()
-                    else -> null
-                }
+                        val method = when (val httpMethodAttribute = requestMappingAnnotation.findAttributeValue("method")) {
+                            is PsiReferenceExpression -> httpMethodAttribute.referenceName?.replace("RequestMethod.", "")
+                            is PsiArrayInitializerMemberValue -> httpMethodAttribute.initializers
+                                    .firstOrNull()
+                                    ?.text
+                                    ?.replace("org.springframework.web.bind.annotation.", "")
+                                    ?.replace("RequestMethod.", "")
 
-                path != null && method != null && method.equals(operation.method, ignoreCase = true) &&
-                        (path == operation.path || !operation.path.startsWith("/"))
-            } ?: return null
+                            else -> null
+                        }
+                        val path = when (val httpPathAttribute = requestMappingAnnotation.findAttributeValue("value")) {
+                            is PsiReferenceExpression -> httpPathAttribute.referenceName
+                            is PsiArrayInitializerMemberValue -> httpPathAttribute.initializers.firstOrNull()?.text?.unquote()
+                            else -> null
+                        }
+
+                        LOG.info("Found method: $method, path: $path")
+                        path != null && method != null && method.equals(operation.method, ignoreCase = true) &&
+                                (path == operation.path || !operation.path.startsWith("/"))
+                    } ?: return null
 
             return if (method.name.startsWith('_')) {
                 val methodNameWithoutUnderscore = method.name.substring(1)
