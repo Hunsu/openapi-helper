@@ -16,6 +16,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.indexing.FileBasedIndex
+import fr.asanokaze.openapihelper.indexing.KEY
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.yaml.psi.YAMLKeyValue
 import org.jetbrains.yaml.psi.YAMLPsiElement
@@ -61,7 +62,7 @@ class OperationIdReference(element: YAMLPsiElement, range: TextRange) : PsiRefer
             val operation = OpenApiParser().extractOperation(element) ?: return@nonBlocking null
 
             val fileUrls = FileBasedIndex.getInstance()
-                    .getValues(OpenApiMethodIndex.KEY, operation.operationId, GlobalSearchScope.projectScope(element.project))
+                    .getValues(KEY, operation.operationId, GlobalSearchScope.projectScope(element.project))
 
             LOG.info("Found fileUrls: ${fileUrls.joinToString(",")}")
             val files = fileUrls.asSequence() // Use sequence for lazy evaluation

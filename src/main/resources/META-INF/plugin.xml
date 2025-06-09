@@ -32,7 +32,7 @@
                 implementationClass="fr.asanokaze.openapihelper.OpenAPILineMarkerProvider"/>
         <psi.referenceContributor implementation="fr.asanokaze.openapihelper.OpenApiOperationIdUsageSearcher"
                                   language="yaml"/>
-        <fileBasedIndex implementation="fr.asanokaze.openapihelper.OpenApiMethodIndex"/>
+        <fileBasedIndex implementation="fr.asanokaze.openapihelper.indexing.OpenApiMethodIndex"/>
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <supportsKotlinPluginMode supportsK2="true"/>

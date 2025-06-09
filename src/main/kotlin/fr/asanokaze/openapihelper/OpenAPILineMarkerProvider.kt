@@ -17,6 +17,7 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.Function
 import com.intellij.util.PsiNavigateUtil
 import com.intellij.util.indexing.FileBasedIndex
+import fr.asanokaze.openapihelper.indexing.KEY
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.yaml.YAMLFileType
 import org.jetbrains.yaml.YAMLTokenTypes
@@ -124,7 +125,7 @@ private fun navigateToImplementation(element: PsiElement) {
 private fun findTargetClassOrMethod(element: PsiElement, operationRef: OpenApiOperation): List<PsiElement> {
     val operationId = operationRef.operationId
     val fileUrls = FileBasedIndex.getInstance()
-            .getValues(OpenApiMethodIndex.KEY, operationId, GlobalSearchScope.projectScope(element.project))
+            .getValues(KEY, operationId, GlobalSearchScope.projectScope(element.project))
 
     fileUrls.asSequence() // Use sequence for lazy evaluation
             .mapNotNull { fileUrl -> VirtualFileManager.getInstance().findFileByUrl(fileUrl) }
