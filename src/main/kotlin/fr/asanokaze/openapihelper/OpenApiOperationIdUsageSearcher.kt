@@ -17,6 +17,7 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.indexing.FileBasedIndex
 import fr.asanokaze.openapihelper.indexing.KEY
+import fr.asanokaze.openapihelper.model.OpenApiOperation
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.yaml.psi.YAMLKeyValue
 import org.jetbrains.yaml.psi.YAMLPsiElement
@@ -59,7 +60,7 @@ class OperationIdReference(element: YAMLPsiElement, range: TextRange) : PsiRefer
         if (DumbService.isDumb(element.project)) return null // Avoid running during indexing
 
         ReadAction.nonBlocking<PsiElement?> {
-            val operation = OpenApiParser().extractOperation(element) ?: return@nonBlocking null
+            val operation = OpenApiYamlParser.extractOperation(element) ?: return@nonBlocking null
 
             val fileUrls = FileBasedIndex.getInstance()
                     .getValues(KEY, operation.operationId, GlobalSearchScope.projectScope(element.project))

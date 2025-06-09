@@ -1,4 +1,4 @@
-package fr.asanokaze.openapihelper
+package fr.asanokaze.openapihelper.model
 
 data class OpenApiOperation(
         val path: String,

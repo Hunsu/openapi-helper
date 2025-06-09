@@ -29,7 +29,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.lineMarkerProvider
                 language="yaml"
-                implementationClass="fr.asanokaze.openapihelper.OpenAPILineMarkerProvider"/>
+                implementationClass="fr.asanokaze.openapihelper.navigation.OpenAPILineMarkerProvider"/>
         <psi.referenceContributor implementation="fr.asanokaze.openapihelper.OpenApiOperationIdUsageSearcher"
                                   language="yaml"/>
         <fileBasedIndex implementation="fr.asanokaze.openapihelper.indexing.OpenApiMethodIndex"/>
