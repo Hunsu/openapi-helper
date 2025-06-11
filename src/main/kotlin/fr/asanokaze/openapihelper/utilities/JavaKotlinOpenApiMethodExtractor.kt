@@ -12,6 +12,7 @@ class JavaKotlinOpenApiMethodExtractor {
         fun resolveMethod(psiClass: PsiClass, operation: OpenApiOperation): PsiMethod? {
             LOG.debug("Searching for implementation of $operation in ${psiClass.qualifiedName}")
             val method = psiClass.methods
+                    .filter { it.name == operation.operationId }
                     .find { method ->
                         val operationAnnotation = method.getAnnotation("io.swagger.v3.oas.annotations.Operation")
                         val requestMappingAnnotation = method.getAnnotation("org.springframework.web.bind.annotation.RequestMapping")
