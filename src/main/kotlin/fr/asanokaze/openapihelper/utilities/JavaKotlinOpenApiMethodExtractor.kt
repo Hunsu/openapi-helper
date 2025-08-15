@@ -65,7 +65,7 @@ class JavaKotlinOpenApiMethodExtractor {
                         }
 
                         LOG.debug("Found method: $method, path: $path")
-                        path != null && method != null && method.equals(operation.method, ignoreCase = true) &&
+                        path != null && method != null && method.equals(operation.method.name, ignoreCase = true) &&
                                 (path == operation.path || !operation.path.startsWith("/"))
                     } ?: return null
 

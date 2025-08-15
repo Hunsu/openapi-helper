@@ -12,7 +12,7 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.Function
 import com.intellij.util.PsiNavigateUtil
-import fr.asanokaze.openapihelper.OpenApiYamlParser
+import fr.asanokaze.openapihelper.parsing.OpenApiYamlParser
 import org.jetbrains.yaml.YAMLTokenTypes
 import org.jetbrains.yaml.psi.YAMLKeyValue
 import javax.swing.Icon
@@ -26,12 +26,12 @@ class OpenAPILineMarkerProvider : LineMarkerProvider {
         if (element.node?.elementType != YAMLTokenTypes.SCALAR_KEY) return null
 
         val file = element.containingFile
-        if (!OpenApiYamlParser.Companion.isOpenApiFile(file)) return null
+        if (!OpenApiYamlParser.isOpenApiFile(file)) return null
 
         val keyValue = element.parent as? YAMLKeyValue ?: return null
         val key = keyValue.keyText
 
-        if (OpenApiYamlParser.Companion.isHttpMethod(key) || OpenApiYamlParser.Companion.isOperationId(key)) {
+        if (OpenApiYamlParser.isHttpMethod(key) || OpenApiYamlParser.isOperationId(key)) {
             val icon: Icon = AllIcons.Gutter.ImplementedMethod
             val tooltip = "Navigate to implementation"
 
@@ -40,7 +40,7 @@ class OpenAPILineMarkerProvider : LineMarkerProvider {
                     element.textRange,
                     icon,
                     Function { tooltip },
-                    { e, elt -> navigateToImplementation(keyValue) }, // Note: passing keyValue here
+                    { _, _ -> navigateToImplementation(keyValue) }, // Note: passing keyValue here
                     GutterIconRenderer.Alignment.LEFT,
                     { "Navigate to implementation" }
             )
@@ -50,7 +50,7 @@ class OpenAPILineMarkerProvider : LineMarkerProvider {
     }
 
     private fun navigateToImplementation(element: PsiElement) {
-        val openApiOperation = OpenApiYamlParser.Companion.extractOperation(element) ?: return
+        val openApiOperation = OpenApiYamlParser.extractOperation(element) ?: return
         val implementations = resolvers.flatMap { it.resolveImplementation(element.project, openApiOperation) }
 
         if (implementations.isEmpty()) return

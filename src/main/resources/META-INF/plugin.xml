@@ -30,9 +30,19 @@
         <codeInsight.lineMarkerProvider
                 language="yaml"
                 implementationClass="fr.asanokaze.openapihelper.navigation.OpenAPILineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider
+                language="JAVA"
+                implementationClass="fr.asanokaze.openapihelper.navigation.GeneratedCodeLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider
+                language="kotlin"
+                implementationClass="fr.asanokaze.openapihelper.navigation.GeneratedCodeLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider
+                language="TypeScript"
+                implementationClass="fr.asanokaze.openapihelper.navigation.GeneratedCodeLineMarkerProvider"/>
         <psi.referenceContributor implementation="fr.asanokaze.openapihelper.OpenApiOperationIdUsageSearcher"
                                   language="yaml"/>
         <fileBasedIndex implementation="fr.asanokaze.openapihelper.indexing.OpenApiMethodIndex"/>
+        <fileBasedIndex implementation="fr.asanokaze.openapihelper.indexing.OpenApiSpecIndex"/>
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <supportsKotlinPluginMode supportsK2="true"/>

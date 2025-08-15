@@ -8,6 +8,7 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.*
 import com.intellij.util.ProcessingContext
 import com.intellij.util.concurrency.AppExecutorUtil
+import fr.asanokaze.openapihelper.parsing.OpenApiYamlParser
 import fr.asanokaze.openapihelper.usages.OpenApiPsiForUsagesResolversFactory
 import org.jetbrains.yaml.psi.YAMLKeyValue
 import org.jetbrains.yaml.psi.YAMLPsiElement

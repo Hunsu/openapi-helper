@@ -54,7 +54,7 @@ class TypeScriptPsiForUsagesResolver : OpenApiPsiForUsagesResolver {
                 val pathMatch = pathRegex.find(functionBodyText)?.groups?.get(1)?.value
                 val methodMatch = methodRegex.find(functionBodyText)?.groups?.get(1)?.value
                 if ((pathMatch == operation.path || !operation.path.startsWith("/")) &&
-                        methodMatch.equals(operation.method, ignoreCase = true)) {
+                        methodMatch.equals(operation.method.name, ignoreCase = true)) {
                     val nonRawFunction = functions.find { it.name == operation.operationId }
                     if (nonRawFunction != null) {
                         LOG.debug("${operation.operationId}Raw function has been replaced by ${nonRawFunction.name}")
